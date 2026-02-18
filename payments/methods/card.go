@@ -2,8 +2,7 @@ package methods
 
 import "fmt"
 
-type Card struct {
-}
+type Card struct{}
 
 func (c Card) Pay(usd int, description string) int {
 	fmt.Println("Оплата картой")
@@ -11,7 +10,7 @@ func (c Card) Pay(usd int, description string) int {
 	return 1
 }
 
-func (c Card) Cancell(id int) int {
-	fmt.Println("Отмена операции оплаты")
+func (c Card) Refund(id int) int {
+	fmt.Println("Возврат средств, на карту пользователя")
 	return 1
 }

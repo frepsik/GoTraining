@@ -1,9 +1,9 @@
 package payments
 
-type paymentMethodType string
+type PaymentMethodType string
 
 const (
-	PayPalMethod paymentMethodType = "paypal"
-	CardMethod   paymentMethodType = "card"
-	CryptoMethod paymentMethodType = "crypto"
+	PayPalMethod PaymentMethodType = "paypal"
+	CardMethod   PaymentMethodType = "card"
+	CryptoMethod PaymentMethodType = "crypto"
 )

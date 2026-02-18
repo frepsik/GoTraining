@@ -7,21 +7,21 @@ import (
 
 type PaymentMethod interface {
 	Pay(usd int, description string) int
-	Cancell(id int) int
+	Refund(id int) int
 }
 
 type PaymentModule struct {
-	paymentMethods map[paymentMethodType]PaymentMethod
+	paymentMethods map[PaymentMethodType]PaymentMethod
 }
 
 // Конструктор - грубо говоря из бд подтягиваем способы оплаты и уже передаём сюда в конструктор в качестве мапы
-func NewPaymentModule(paymentMethods map[paymentMethodType]PaymentMethod) *PaymentModule {
+func NewPaymentModule(paymentMethod PaymentMethod) *PaymentModule {
 	return &PaymentModule{
-		paymentMethods: paymentMethods,
+		paymentMethods: map[PaymentMethodType]PaymentMethod{},
 	}
 }
 
-func (p *PaymentModule) Pay(paymentMethodType paymentMethodType, usd int, description string) Payment {
+func (p *PaymentModule) Pay(paymentMethodType PaymentMethodType, usd int, description string) Payment {
 	//Получаем кастомный тип, который я уже создал, проверяем в мапе на его наличие, то есть тип оплаты (карта, paypal, крипта), проверяем, что такое есть
 	paymentMethod, ok := p.paymentMethods[paymentMethodType]
 	if !ok {
@@ -43,12 +43,12 @@ func (p *PaymentModule) Pay(paymentMethodType paymentMethodType, usd int, descri
 }
 
 // Отмена оплаты, то есть возврат средств
-func (p *PaymentModule) Cancell(payment Payment) Payment {
+func (p *PaymentModule) Refund(payment Payment) Payment {
 	listPayment := map[int]Payment{} //представим что этот мап заполненный уже, просто по мапу искать лучше, чем по слайсу, потому что быстрее
 
 	//Достаём нужный метод оплаты и производим отмену оплаты
-	methodPay := p.paymentMethods[paymentMethodType(payment.MethodPay)]
-	methodPay.Cancell(payment.idPay)
+	methodPay := p.paymentMethods[PaymentMethodType(payment.MethodPay)]
+	methodPay.Refund(payment.idPay)
 
 	paymentGet := listPayment[payment.Id]
 
