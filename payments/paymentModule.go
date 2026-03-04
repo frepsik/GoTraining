@@ -14,24 +14,24 @@ type PaymentModule struct {
 	paymentMethods map[PaymentMethodType]PaymentMethod
 }
 
-// Конструктор - грубо говоря из бд подтягиваем способы оплаты и уже передаём сюда в конструктор в качестве мапы
-func NewPaymentModule(paymentMethod PaymentMethod) *PaymentModule {
+// Конструктор - при создании экземпляра передаём сюда все способы оплаты, их может быть более одного
+func NewPaymentModule(paymentMethods map[PaymentMethodType]PaymentMethod) *PaymentModule {
 	return &PaymentModule{
-		paymentMethods: map[PaymentMethodType]PaymentMethod{},
+		paymentMethods: paymentMethods,
 	}
 }
 
 func (p *PaymentModule) Pay(paymentMethodType PaymentMethodType, usd int, description string) Payment {
 	//Получаем кастомный тип, который я уже создал, проверяем в мапе на его наличие, то есть тип оплаты (карта, paypal, крипта), проверяем, что такое есть
-	paymentMethod, ok := p.paymentMethods[paymentMethodType]
+	methodPay, ok := p.paymentMethods[paymentMethodType]
 	if !ok {
 		return Payment{}
 	}
 
 	//Производим оплату со стороны самого сервиса, что всё успешно проходит, по сути, от нас протсо запустить эту функцию и всё, она уже где то там, кем то была написана, грубо говоря
-	id := paymentMethod.Pay(usd, description)
+	id := methodPay.Pay(usd, description)
 
-	//Возвращаем объект в main, для того, чтобы дальше отправить его на запись в бд от туда, или в другую прослойку, и уже от туда начинать записывать в БД
+	//Чисто теоретически на этом этапе нужно отправлять в БД на добавление, но здесь мы как бы возвращаем в main уже после добавления в БД, условно
 	return Payment{
 		rand.Intn(1000),
 		usd,
@@ -43,18 +43,17 @@ func (p *PaymentModule) Pay(paymentMethodType PaymentMethodType, usd int, descri
 }
 
 // Отмена оплаты, то есть возврат средств
-func (p *PaymentModule) Refund(payment Payment) Payment {
-	listPayment := map[int]Payment{} //представим что этот мап заполненный уже, просто по мапу искать лучше, чем по слайсу, потому что быстрее
+func (p *PaymentModule) Refund(paymentMethodType PaymentMethodType, payment Payment) Payment {
 
 	//Достаём нужный метод оплаты и производим отмену оплаты
-	methodPay := p.paymentMethods[PaymentMethodType(payment.MethodPay)]
+	methodPay := p.paymentMethods[paymentMethodType]
+
+	//Здесь мы производим возврат на уровне провадйера, то есть тех методов оплаты, что были переданы, все возможные
 	methodPay.Refund(payment.idPay)
 
-	paymentGet := listPayment[payment.Id]
+	//Где то тут как бы отправляем дело в БД и от туда уже приходит результат, о том, успешно ли мы всё поменяли или нет и соответственно сам объект возвращаем
 
-	paymentGet.IsCancelled = true
-
-	return paymentGet
+	return payment
 }
 
 // Просто вывод чека
