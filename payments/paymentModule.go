@@ -50,7 +50,7 @@ func (p *PaymentModule) Refund(paymentMethodType PaymentMethodType, payment Paym
 
 	//Здесь мы производим возврат на уровне провадйера, то есть тех методов оплаты, что были переданы, все возможные
 	methodPay.Refund(payment.idPay)
-
+	payment.IsCancelled = false
 	//Где то тут как бы отправляем дело в БД и от туда уже приходит результат, о том, успешно ли мы всё поменяли или нет и соответственно сам объект возвращаем
 
 	return payment
