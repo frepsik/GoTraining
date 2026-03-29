@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-	exceptiontestprogramm "goTraining/exceptionTestProgramm"
-	entities "goTraining/exceptionTestProgramm/Entities"
+	"goTraining/panics"
 )
 
 // "fmt"
@@ -40,27 +38,30 @@ func main() {
 	// fmt.Println(paymentOut.IsCancelled, paymentOut.MethodPay)
 
 	// 2)ИСКЛЮЧЕНИЯ
-	db := &exceptiontestprogramm.DataBase{}
+	// db := &exceptiontestprogramm.DataBase{}
 
-	u1 := &entities.User{
-		Id:     123,
-		Name:   "Лёха",
-		Age:    29,
-		Email:  "Почта",
-		Number: "nomer trubki",
-	}
-	u2 := &entities.User{}
+	// u1 := &entities.User{
+	// 	Id:     123,
+	// 	Name:   "Лёха",
+	// 	Age:    29,
+	// 	Email:  "Почта",
+	// 	Number: "nomer trubki",
+	// }
+	// u2 := &entities.User{}
 
-	fmt.Println(*u1)
+	// fmt.Println(*u1)
 
-	err := db.AddUser(u1)
-	err2 := db.AddUser(u2)
+	// err := db.AddUser(u1)
+	// err2 := db.AddUser(u2)
 
-	if err != nil {
-		fmt.Println(err)
-	}
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	if err2 != nil {
-		fmt.Println(err2)
-	}
+	// if err2 != nil {
+	// 	fmt.Println(err2)
+	// }
+
+	//3 ПАНИКИ
+	panics.TestFunc()
 }
