@@ -1,7 +1,7 @@
 package main
 
 import (
-	selectconstruction "goTraining/SelectConstruction"
+	examplecaseuseselect "goTraining/ExampleCaseUseSelect"
 )
 
 //В данном примере рассматривается пример реализации горпутин и каналов.
@@ -23,6 +23,7 @@ import (
 func main() {
 	// goroutineandchannels.ProcessingSendMessage()
 
-	selectconstruction.TestFunc()
+	// selectconstruction.TestFunc()
 
+	examplecaseuseselect.TestFunc()
 }
