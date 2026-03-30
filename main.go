@@ -1,7 +1,7 @@
 package main
 
 import (
-	goroutineandchannels "goTraining/GoroutineAndChannels"
+	selectconstruction "goTraining/SelectConstruction"
 )
 
 //В данном примере рассматривается пример реализации горпутин и каналов.
@@ -21,6 +21,8 @@ import (
 // в связи тем, что необходимо ожидать некоторой передачи занчения в горутине, ведь без ожидания, функция просто пойдёт дальше, и может завершиться ещё до момента, пока параллельный поток, что-то сделает
 
 func main() {
-	goroutineandchannels.ProcessingSendMessage()
+	// goroutineandchannels.ProcessingSendMessage()
+
+	selectconstruction.TestFunc()
 
 }
