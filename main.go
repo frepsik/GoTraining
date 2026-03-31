@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import closedchannelsandaksioms "goTraining/ClosedChannelsAndAksioms"
 
+func main() {
+	closedchannelsandaksioms.TestFuncInClosedChannel()
 }
