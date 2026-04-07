@@ -37,8 +37,8 @@ func main() {
 
 	//Запускаем весь функционал по их работе
 	//при количество в 100, или более, менее, время работы одинаковое, примерно 6 секнуд (провенрял 3, 15, 100 одновременно выполняющих работу)
-	minerTransferPoint := miner.PoolMiner(minerContext, 100)
-	postmanTransferPoint := postman.PoolPostman(postmanContext, 100)
+	minerTransferPoint := miner.PoolMiner(minerContext, 3)
+	postmanTransferPoint := postman.PoolPostman(postmanContext, 3)
 
 	wg := sync.WaitGroup{}
 

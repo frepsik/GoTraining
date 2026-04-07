@@ -25,36 +25,36 @@ func miner(
 		//2 конструкция - данная конструкция имеет смысл, в случае, если необходимо завершить работу сразу, без возможности закончить, что было начато, то есть шахтёры начали
 		//добывать уголь, и как только контекст завершился они не начали передавать его, бросили и завершили данную операцию
 
-		// fmt.Println("Я шахтёр ", numberMiner, "начал добывать уголь")
-		// select {
-		// case <-ctx.Done():
-		// 	fmt.Println("Я шахтёр ", numberMiner, "завершил свою работу")
-		// 	return
-		// case <-time.After(1 * time.Second):
-		// 	fmt.Println("Я шахтёр ", numberMiner, "добыл уголь. Количество: ", power)
-		// }
-
-		// select {
-		// case <-ctx.Done():
-		// 	fmt.Println("Я шахтёр ", numberMiner, "завершил свою работу")
-		// 	return
-		// case transferPoint <- power:
-		// 	fmt.Println("Я шахтёр ", numberMiner, "передал уголь. Количество: ", power)
-		// }
+		fmt.Println("Я шахтёр ", numberMiner, "начал добывать уголь")
+		select {
+		case <-ctx.Done():
+			fmt.Println("Я шахтёр ", numberMiner, "завершил свою работу")
+			return
+		case <-time.After(1 * time.Second):
+			fmt.Println("Я шахтёр ", numberMiner, "добыл уголь. Количество: ", power)
+		}
 
 		select {
 		case <-ctx.Done():
 			fmt.Println("Я шахтёр ", numberMiner, "завершил свою работу")
 			return
-		default:
-			fmt.Println("Я шахтёр ", numberMiner, "начал добывать уголь")
-
-			time.Sleep(1 * time.Second)
-
-			transferPoint <- power
-
-			fmt.Println("Я шахтёр ", numberMiner, "добыл уголь и передал. Количество: ", power)
+		case transferPoint <- power:
+			fmt.Println("Я шахтёр ", numberMiner, "передал уголь. Количество: ", power)
 		}
+
+		// select {
+		// case <-ctx.Done():
+		// 	fmt.Println("Я шахтёр ", numberMiner, "завершил свою работу")
+		// 	return
+		// default:
+		// 	fmt.Println("Я шахтёр ", numberMiner, "начал добывать уголь")
+
+		// 	time.Sleep(1 * time.Second)
+
+		// 	transferPoint <- power
+
+		// 	fmt.Println("Я шахтёр ", numberMiner, "добыл уголь и передал. Количество: ", power)
+		// }
 	}
 }
 
