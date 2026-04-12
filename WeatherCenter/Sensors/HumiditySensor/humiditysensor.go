@@ -85,7 +85,7 @@ func (hs *Humiditysensor) generatingCoordinates() (x float64, y float64) {
 }
 
 // Функция, где мы осуществляем работу датчиков и далее передаём значение в функцию вызова этой, также присутствует контроль над работой каждого датчика
-func (hs *Humiditysensor) PoolHumiditysensor() <-chan HumiditysensorType {
+func (hs *Humiditysensor) PoolSensor() <-chan HumiditysensorType {
 
 	if hs.stop == nil {
 		panic("Use NewPressureSensor()")

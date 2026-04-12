@@ -85,7 +85,7 @@ func (ps *PressureSensor) generatingCoordinates() (x float64, y float64) {
 }
 
 // Функция, где мы осуществляем работу датчиков и далее передаём значение в функцию вызова этой, также присутствует контроль над работой каждого датчика
-func (ps *PressureSensor) PoolPressureSensor() <-chan PressureSensorType {
+func (ps *PressureSensor) PoolSensor() <-chan PressureSensorType {
 
 	if ps.stop == nil {
 		panic("Use NewPressureSensor()")

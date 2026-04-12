@@ -85,7 +85,7 @@ func (ss *SeismicSensor) generatingCoordinates() (x float64, y float64) {
 }
 
 // Функция, где мы осуществляем работу датчиков и далее передаём значение в функцию вызова этой, также присутствует контроль над работой каждого датчика
-func (ss *SeismicSensor) PoolHumiditysensor() <-chan SeismicSensorsType {
+func (ss *SeismicSensor) PoolSensor() <-chan SeismicSensorsType {
 
 	if ss.stop == nil {
 		panic("Use NewPressureSensor()")
