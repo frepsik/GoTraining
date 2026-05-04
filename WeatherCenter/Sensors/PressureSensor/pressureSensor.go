@@ -28,7 +28,7 @@ func NewPressureSensor(_ctx context.Context, _countSensors int) *PressureSensor 
 func (ps *PressureSensor) collection(
 	wg *sync.WaitGroup,
 	ctx context.Context,
-	transferPoint chan<- PressureSensorType,
+	transferPoint chan<- any,
 	lat float64,
 	lot float64,
 	numberSensor int,
@@ -85,13 +85,13 @@ func (ps *PressureSensor) generatingCoordinates() (x float64, y float64) {
 }
 
 // Функция, где мы осуществляем работу датчиков и далее передаём значение в функцию вызова этой, также присутствует контроль над работой каждого датчика
-func (ps *PressureSensor) PoolSensor() <-chan PressureSensorType {
+func (ps *PressureSensor) PoolSensor() <-chan any {
 
 	if ps.stop == nil {
 		panic("Use NewPressureSensor()")
 	}
 
-	psTransferPoint := make(chan PressureSensorType)
+	psTransferPoint := make(chan any)
 
 	wg := &sync.WaitGroup{}
 

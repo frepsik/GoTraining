@@ -28,7 +28,7 @@ func NewHumiditysensor(_ctx context.Context, _countSensors int) *Humiditysensor 
 func (hs *Humiditysensor) collection(
 	wg *sync.WaitGroup,
 	ctx context.Context,
-	transferPoint chan<- HumiditysensorType,
+	transferPoint chan<- any,
 	lat float64,
 	lot float64,
 	numberSensor int,
@@ -85,13 +85,13 @@ func (hs *Humiditysensor) generatingCoordinates() (x float64, y float64) {
 }
 
 // Функция, где мы осуществляем работу датчиков и далее передаём значение в функцию вызова этой, также присутствует контроль над работой каждого датчика
-func (hs *Humiditysensor) PoolSensor() <-chan HumiditysensorType {
+func (hs *Humiditysensor) PoolSensor() <-chan any {
 
 	if hs.stop == nil {
 		panic("Use NewPressureSensor()")
 	}
 
-	hsTransferPoint := make(chan HumiditysensorType)
+	hsTransferPoint := make(chan any)
 
 	wg := &sync.WaitGroup{}
 

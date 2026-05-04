@@ -28,7 +28,7 @@ func NewSeismicSensor(_ctx context.Context, _countSensors int) *SeismicSensor {
 func (ss *SeismicSensor) collection(
 	wg *sync.WaitGroup,
 	ctx context.Context,
-	transferPoint chan<- SeismicSensorsType,
+	transferPoint chan<- any,
 	lat float64,
 	lot float64,
 	numberSensor int,
@@ -85,13 +85,13 @@ func (ss *SeismicSensor) generatingCoordinates() (x float64, y float64) {
 }
 
 // Функция, где мы осуществляем работу датчиков и далее передаём значение в функцию вызова этой, также присутствует контроль над работой каждого датчика
-func (ss *SeismicSensor) PoolSensor() <-chan SeismicSensorsType {
+func (ss *SeismicSensor) PoolSensor() <-chan any {
 
 	if ss.stop == nil {
 		panic("Use NewPressureSensor()")
 	}
 
-	ssTransferPoint := make(chan SeismicSensorsType)
+	ssTransferPoint := make(chan any)
 
 	wg := &sync.WaitGroup{}
 
