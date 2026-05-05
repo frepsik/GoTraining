@@ -32,6 +32,7 @@ func (ps *PressureSensor) collection(
 	lat float64,
 	lot float64,
 	numberSensor int,
+	stopChan <-chan struct{},
 ) {
 	defer wg.Done()
 
@@ -40,7 +41,7 @@ func (ps *PressureSensor) collection(
 		case <-ctx.Done():
 			fmt.Println("Сбор атмосферного давления датчиком №", numberSensor, "завершён")
 			return
-		case <-ps.stop[numberSensor]:
+		case <-stopChan:
 			fmt.Println("Сбор атмосферного давления датчиком №", numberSensor, "завершили вручную")
 			return
 		default:
@@ -56,7 +57,8 @@ func (ps *PressureSensor) collection(
 			}
 
 			transferPoint <- data
-			fmt.Println("Время:", time.Now(), "Датчик Атм.Дав №", numberSensor, "в координатах", lat, ",", lot, "считал атмосферное давление:", atmosphericPressure)
+			fmt.Println("Время:", time.Now(), "\nДатчик Атм.Дав №", numberSensor, "в координатах", lat, ",", lot, "считал атмосферное давление:", atmosphericPressure)
+			fmt.Println()
 
 		}
 	}
@@ -98,9 +100,16 @@ func (ps *PressureSensor) PoolSensor() <-chan any {
 	for i := 1; i <= ps.countSensors; i++ {
 		wg.Add(1)
 		lat, lot := ps.generatingCoordinates()
-		ps.stop[i] = make(chan struct{})
 
-		go ps.collection(wg, ps.ctx, psTransferPoint, lat, lot, i)
+		//Будем передавать отдельный канал, потому что если через map обращаться, будет гонка данных, и использовать mtx перед select там не целесообразно, через
+		//пустой канал будет более эффективно по времени
+		stopChan := make(chan struct{})
+
+		ps.mtx.Lock()
+		ps.stop[i] = stopChan
+		ps.mtx.Unlock()
+
+		go ps.collection(wg, ps.ctx, psTransferPoint, lat, lot, i, stopChan)
 	}
 
 	//Как только завершится

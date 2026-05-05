@@ -32,6 +32,7 @@ func (ss *SeismicSensor) collection(
 	lat float64,
 	lot float64,
 	numberSensor int,
+	stopChan <-chan struct{},
 ) {
 	defer wg.Done()
 
@@ -40,7 +41,7 @@ func (ss *SeismicSensor) collection(
 		case <-ctx.Done():
 			fmt.Println("Сбор сейсмической активности датчиком №", numberSensor, "завершён")
 			return
-		case <-ss.stop[numberSensor]:
+		case <-stopChan:
 			fmt.Println("Сбор сейсмической активности датчиком №", numberSensor, "завершили вручную")
 			return
 		default:
@@ -56,8 +57,8 @@ func (ss *SeismicSensor) collection(
 			}
 
 			transferPoint <- data
-			fmt.Println("Время:", time.Now(), "Датчик Сейс.Актив №", numberSensor, "в координатах", lat, ",", lot, "считал атмосферное давление:", seismicActivity)
-
+			fmt.Println("Время:", time.Now(), "\nДатчик Сейс.Актив №", numberSensor, "в координатах", lat, ",", lot, "считал атмосферное давление:", seismicActivity)
+			fmt.Println()
 		}
 	}
 }
@@ -98,9 +99,16 @@ func (ss *SeismicSensor) PoolSensor() <-chan any {
 	for i := 1; i <= ss.countSensors; i++ {
 		wg.Add(1)
 		lat, lot := ss.generatingCoordinates()
-		ss.stop[i] = make(chan struct{})
 
-		go ss.collection(wg, ss.ctx, ssTransferPoint, lat, lot, i)
+		//Будем передавать отдельный канал, потому что если через map обращаться, будет гонка данных, и использовать mtx перед select там не целесообразно, через
+		//пустой канал будет более эффективно по времени
+		stopChan := make(chan struct{})
+
+		ss.mtx.Lock()
+		ss.stop[i] = stopChan
+		ss.mtx.Unlock()
+
+		go ss.collection(wg, ss.ctx, ssTransferPoint, lat, lot, i, stopChan)
 	}
 
 	//Как только завершится

@@ -32,6 +32,7 @@ func (hs *Humiditysensor) collection(
 	lat float64,
 	lot float64,
 	numberSensor int,
+	stopChan <-chan struct{},
 ) {
 	defer wg.Done()
 
@@ -40,7 +41,7 @@ func (hs *Humiditysensor) collection(
 		case <-ctx.Done():
 			fmt.Println("Сбор влажности воздуха датчиком №", numberSensor, "завершён")
 			return
-		case <-hs.stop[numberSensor]:
+		case <-stopChan:
 			fmt.Println("Сбор влажности воздуха датчиком №", numberSensor, "завершили вручную")
 			return
 		default:
@@ -56,8 +57,8 @@ func (hs *Humiditysensor) collection(
 			}
 
 			transferPoint <- data
-			fmt.Println("Время:", time.Now(), "Датчик Влаж.Возд №", numberSensor, "в координатах", lat, ",", lot, "считал атмосферное давление:", humidity)
-
+			fmt.Println("Время:", time.Now(), "\nДатчик Влаж.Возд №", numberSensor, "в координатах", lat, ",", lot, "считал атмосферное давление:", humidity)
+			fmt.Println()
 		}
 	}
 }
@@ -98,9 +99,16 @@ func (hs *Humiditysensor) PoolSensor() <-chan any {
 	for i := 1; i <= hs.countSensors; i++ {
 		wg.Add(1)
 		lat, lot := hs.generatingCoordinates()
-		hs.stop[i] = make(chan struct{})
 
-		go hs.collection(wg, hs.ctx, hsTransferPoint, lat, lot, i)
+		//Будем передавать отдельный канал, потому что если через map обращаться, будет гонка данных, и использовать mtx перед select там не целесообразно, через
+		//пустой канал будет более эффективно по времени
+		stopChan := make(chan struct{})
+
+		hs.mtx.Lock()
+		hs.stop[i] = stopChan
+		hs.mtx.Unlock()
+
+		go hs.collection(wg, hs.ctx, hsTransferPoint, lat, lot, i, stopChan)
 	}
 
 	//Как только завершится
