@@ -82,7 +82,8 @@ func main() {
 	http.HandleFunc("/pay", payHandler)
 	http.HandleFunc("/cancel", cancelPayHandler)
 	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/payHandler", handlerforpayandsavemoney.PayServiceHandler())
+	http.HandleFunc("/payHandler", handlerforpayandsavemoney.PayServiceHandler(&money))
+	http.HandleFunc("/saveHandler", handlerforpayandsavemoney.SaveMoneyHandler(&bank, &money))
 
 	//Запускаем сам сервер, на ожидание прихода определённых запросов, на 9091 порту, второй аргумент используется под более тонкую настройку handler, ещё не вникал в это
 	fmt.Println("Запускаем сервер на приём запрсоов!")
