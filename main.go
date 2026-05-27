@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	handlerforpayandsavemoney "goTraining/HandlerForPayAndSaveMoney"
 	"net/http"
+	"sync/atomic"
 )
 
 //Здесь рассматриваю небольшую логику работы http обработчиков и запуск сервера с обработчиками.
@@ -70,11 +72,17 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	var money = atomic.Int64{}
+	var bank = atomic.Int64{}
+	money.Add(1000)
+
 	//Функция, где мы говорим, что можем ожидать определённый сценарий и запускать на него обработчик, просто создаём маршрутизацию, которой могут в последствии воспользоваться
 	http.HandleFunc("/default", handler)
 	http.HandleFunc("/pay", payHandler)
 	http.HandleFunc("/cancel", cancelPayHandler)
 	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/payHandler", handlerforpayandsavemoney.PayServiceHandler())
 
 	//Запускаем сам сервер, на ожидание прихода определённых запросов, на 9091 порту, второй аргумент используется под более тонкую настройку handler, ещё не вникал в это
 	fmt.Println("Запускаем сервер на приём запрсоов!")
