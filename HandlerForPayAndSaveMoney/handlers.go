@@ -42,6 +42,7 @@ func (b *Balance) PayServiceHandler() http.HandlerFunc {
 
 		b.mu.Lock()
 		if b.Money-price >= 0 {
+			//Инсценирую вариант, когда могла бы быть гонка данных, но посредствам mutex, мы её исключаем
 			time.Sleep(3 * time.Second)
 			b.Money -= price
 			fmt.Println("-", price)
