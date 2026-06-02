@@ -6,7 +6,6 @@ import (
 	"fmt"
 	payment "goTraining/Payment"
 	"net/http"
-	"strconv"
 	"sync"
 )
 
@@ -27,13 +26,13 @@ func payService(payment payment.PayInfo) error {
 }
 
 func payHandler(w http.ResponseWriter, r *http.Request) {
-	var payment payment.PayInfo
+	var currentPayment payment.PayInfo
 	//Здесь расшифровываем из json в структуру, производится десериализация данных
-	if err := json.NewDecoder(r.Body).Decode(&payment); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&currentPayment); err != nil {
 		fmt.Println("Fail read HTTP request (JSON):", err)
 	}
 
-	if err := payService(payment); err != nil {
+	if err := payService(currentPayment); err != nil {
 		fmt.Println("Fail pay service:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -41,10 +40,20 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Если чуть более грамотно разделять, тут в теории можно было бы сделать и rwMutex, на считывание
 	mu.Lock()
-	historyPay = append(historyPay, payment)
-	payment.Println()
+	historyPay = append(historyPay, currentPayment)
+	httpResponse := payment.HttpResponse{
+		PaymentHistory: historyPay,
+		Money:          money,
+	}
+	currentPayment.Println()
 	fmt.Println(historyPay)
-	w.Write([]byte("Оплата успешно произведена. Текущий баланс: " + strconv.Itoa(money)))
+	b, err := json.Marshal(httpResponse)
+	if err != nil {
+		fmt.Println("Fail convert to json httpResponce:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(b)
 	mu.Unlock()
 
 }

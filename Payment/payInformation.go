@@ -11,6 +11,11 @@ type PayInfo struct {
 	Address     string `json:"address"`
 }
 
+type HttpResponse struct {
+	PaymentHistory []PayInfo `json:"paymentHistory"`
+	Money          int       `json:"money"`
+}
+
 func (p PayInfo) Println() {
 	fmt.Println("Услуга:", p.Description)
 	fmt.Println("Стоимость:", p.USD)
