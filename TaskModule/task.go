@@ -1,21 +1,27 @@
 package taskmodule
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Task struct {
-	id          uuid.UUID
-	head        string
-	description string
-	isCompleted bool
+	id            uuid.UUID
+	head          string
+	description   string
+	isCompleted   bool
+	dateCreated   time.Time
+	dateCompleate *time.Time
 }
 
 func NewTask(head string, description string) *Task {
 	return &Task{
-		id:          uuid.New(),
-		head:        head,
-		description: description,
-		isCompleted: false,
+		id:            uuid.New(),
+		head:          head,
+		description:   description,
+		isCompleted:   false,
+		dateCreated:   time.Now(),
+		dateCompleate: nil
 	}
 }
-
-func GetTask(id uuid.UUID) Task {}
