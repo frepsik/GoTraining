@@ -22,7 +22,7 @@ func NewTaskRepository() *TaskRepository {
 
 // Добавление задачи
 func (tr *TaskRepository) Add(task Task) error {
-	tr.tasks[task.id] = task
+	tr.tasks[task.Id] = task
 	return nil
 }
 
