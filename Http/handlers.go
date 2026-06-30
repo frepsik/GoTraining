@@ -2,7 +2,7 @@ package http
 
 import (
 	"encoding/json"
-	taskmodule "goTraining/TaskModule"
+	repo "goTraining/Repo"
 	"net/http"
 	"time"
 )
@@ -11,10 +11,10 @@ import (
 //что отсюда я буду вызывать прослойку service, где будет происходить валидация некоторая и работа, а далее уже вызываться repository, но пока в планах упрощённую версию сделать
 
 type HttpHandlers struct {
-	taskRepository *taskmodule.TaskRepository
+	taskRepository *repo.TaskRepository
 }
 
-func NewHttpHandlers(taskRepository *taskmodule.TaskRepository) *HttpHandlers {
+func NewHttpHandlers(taskRepository *repo.TaskRepository) *HttpHandlers {
 	return &HttpHandlers{
 		taskRepository: taskRepository,
 	}

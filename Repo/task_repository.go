@@ -1,7 +1,9 @@
-package taskmodule
+package repo
 
 import (
 	"errors"
+	storage "goTraining/Storage"
+	taskmodule "goTraining/TaskModule"
 
 	"github.com/google/uuid"
 )
@@ -11,33 +13,35 @@ import (
 // не входные валидации - это уровень Serivce
 
 type TaskRepository struct {
-	tasks map[uuid.UUID]Task
+	tasks   map[uuid.UUID]taskmodule.Task
+	storage *storage.JsonStorage
 }
 
-func NewTaskRepository() *TaskRepository {
+func NewTaskRepository(storage *storage.JsonStorage) *TaskRepository {
 	return &TaskRepository{
-		tasks: make(map[uuid.UUID]Task),
+		tasks:   make(map[uuid.UUID]taskmodule.Task),
+		storage: storage,
 	}
 }
 
 // Добавление задачи
-func (tr *TaskRepository) Add(task Task) error {
+func (tr *TaskRepository) Add(task taskmodule.Task) error {
 	tr.tasks[task.Id] = task
 	return nil
 }
 
 // Получение задачи по id
-func (tr *TaskRepository) GetById(idTask uuid.UUID) (Task, error) {
+func (tr *TaskRepository) GetById(idTask uuid.UUID) (taskmodule.Task, error) {
 	task, ok := tr.tasks[idTask]
 	if !ok {
-		return Task{}, errors.New("Task not found")
+		return taskmodule.Task{}, errors.New("Task not found")
 	}
 	return task, nil
 }
 
 // Получение всех задач
-func (tr *TaskRepository) Get() []Task {
-	result := []Task{}
+func (tr *TaskRepository) Get() []taskmodule.Task {
+	result := []taskmodule.Task{}
 
 	for _, t := range tr.tasks {
 		result = append(result, t)
@@ -47,10 +51,10 @@ func (tr *TaskRepository) Get() []Task {
 }
 
 // Получение завершённых задач
-func (tr *TaskRepository) GetCompleated() []Task {
-	result := []Task{}
+func (tr *TaskRepository) GetCompleated() []taskmodule.Task {
+	result := []taskmodule.Task{}
 	for _, t := range tr.tasks {
-		if t.isCompleted == true {
+		if t.IsCompleted == true {
 			result = append(result, t)
 		}
 	}
@@ -58,11 +62,11 @@ func (tr *TaskRepository) GetCompleated() []Task {
 }
 
 // Получение не завершённых задач
-func (tr *TaskRepository) GetNotCompleated() []Task {
-	result := []Task{}
+func (tr *TaskRepository) GetNotCompleated() []taskmodule.Task {
+	result := []taskmodule.Task{}
 
 	for _, t := range tr.tasks {
-		if t.isCompleted != true {
+		if t.IsCompleted != true {
 			result = append(result, t)
 		}
 	}
@@ -75,7 +79,7 @@ func (tr *TaskRepository) PatchTaskCompleated(id uuid.UUID) error {
 	if !ok {
 		return errors.New("Task not found")
 	}
-	task.isCompleted = true
+	task.IsCompleted = true
 	tr.tasks[id] = task
 	return nil
 }

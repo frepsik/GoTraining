@@ -7,20 +7,20 @@ import (
 )
 
 type Task struct {
-	id             uuid.UUID
-	head           string
-	description    string
-	isCompleted    bool
-	dateCreated    time.Time
-	dateCompleated time.Time
+	Id            uuid.UUID
+	head          string
+	description   string
+	IsCompleted   bool
+	dateCreated   time.Time
+	dateCompleate time.Time
 }
 
 func NewTask(head string, description string) *Task {
 	return &Task{
-		id:          uuid.New(),
+		Id:          uuid.New(),
 		head:        head,
 		description: description,
-		isCompleted: false,
+		IsCompleted: false,
 		dateCreated: time.Now(),
 	}
 }

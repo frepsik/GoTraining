@@ -1,12 +1,16 @@
-package taskmodule
+package service
 
-import "github.com/google/uuid"
+import (
+	repo "goTraining/Repo"
+
+	"github.com/google/uuid"
+)
 
 type TaskService struct {
-	taskRepository *TaskRepository
+	taskRepository *repo.TaskRepository
 }
 
-func NewTaskService(taskRepository *TaskRepository) *TaskService {
+func NewTaskService(taskRepository *repo.TaskRepository) *TaskService {
 	return &TaskService{
 		taskRepository: taskRepository,
 	}
