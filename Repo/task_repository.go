@@ -31,6 +31,7 @@ func (tr *TaskRepository) Add(task taskmodule.Task) error {
 	if err := tr.storage.Save(tr.tasks); err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -27,13 +27,16 @@ func (js *JsonStorage) Load() (error, map[uuid.UUID]taskmodule.Task) {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, make(map[uuid.UUID]taskmodule.Task)
 		}
+		//Если любая другая ошибка при попытке открыть файл
 		return fmt.Errorf("%w: open file: %w", ErrStorage, err), nil
 	}
 	defer file.Close()
 
 	var loadValues []taskmodule.Task
+
+	//Возвращаем также произвольную ошибку, если возникла проблема при десериализации json файла
 	if err := json.NewDecoder(file).Decode(&loadValues); err != nil {
-		return err, nil
+		return fmt.Errorf("%w: decode json: %w", ErrStorage, err), nil
 	}
 
 	tasksMap := make(map[uuid.UUID]taskmodule.Task, len(loadValues))
