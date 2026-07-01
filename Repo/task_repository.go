@@ -27,6 +27,10 @@ func NewTaskRepository(storage *storage.JsonStorage) *TaskRepository {
 // Добавление задачи
 func (tr *TaskRepository) Add(task taskmodule.Task) error {
 	tr.tasks[task.Id] = task
+
+	if err := tr.storage.Save(tr.tasks); err != nil {
+		return err
+	}
 	return nil
 }
 

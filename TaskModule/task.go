@@ -15,8 +15,8 @@ type Task struct {
 	dateCompleate time.Time
 }
 
-func NewTask(head string, description string) *Task {
-	return &Task{
+func NewTask(head string, description string) Task {
+	return Task{
 		Id:          uuid.New(),
 		head:        head,
 		description: description,

@@ -2,6 +2,7 @@ package service
 
 import (
 	repo "goTraining/Repo"
+	taskmodule "goTraining/TaskModule"
 
 	"github.com/google/uuid"
 )
@@ -16,8 +17,14 @@ func NewTaskService(taskRepository *repo.TaskRepository) *TaskService {
 	}
 }
 
-func (ts *TaskService) CreateTask(head string, description string) {
+func (ts *TaskService) CreateTask(head string, description string) (taskmodule.Task, error) {
+	newTask := taskmodule.NewTask(head, description)
 
+	if err := ts.taskRepository.Add(newTask); err != nil {
+		return taskmodule.Task{}, err
+	}
+
+	return newTask, nil
 }
 
 func (ts *TaskService) GetTaskbyId(uuid.UUID) {

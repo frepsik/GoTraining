@@ -2,6 +2,8 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	taskmodule "goTraining/TaskModule"
 	"os"
 
@@ -13,7 +15,6 @@ type JsonStorage struct {
 }
 
 func NewJsonStorage(path string) *JsonStorage {
-
 	return &JsonStorage{
 		path: path,
 	}
@@ -22,7 +23,11 @@ func NewJsonStorage(path string) *JsonStorage {
 func (js *JsonStorage) Load() (error, map[uuid.UUID]taskmodule.Task) {
 	file, err := os.Open(js.path)
 	if err != nil {
-		return err, nil
+		//Проверка на то, что ошибка связана с тем, что файла не существует
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, make(map[uuid.UUID]taskmodule.Task)
+		}
+		return fmt.Errorf("%w: open file: %w", ErrStorage, err), nil
 	}
 	defer file.Close()
 
