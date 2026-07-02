@@ -2,21 +2,27 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	repo "goTraining/Repo"
+	service "goTraining/Service"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 //Файл, со всеми endPoint (паттернами), где будут существовать различные виды обработки запросов, как прослойка, из которой вызывают другие методы, по сути можно было бы сделать
 //что отсюда я буду вызывать прослойку service, где будет происходить валидация некоторая и работа, а далее уже вызываться repository, но пока в планах упрощённую версию сделать
 
 type HttpHandlers struct {
-	taskRepository *repo.TaskRepository
+	taskService *service.TaskService
 }
 
-func NewHttpHandlers(taskRepository *repo.TaskRepository) *HttpHandlers {
+func NewHttpHandlers(taskService *service.TaskService) *HttpHandlers {
 	return &HttpHandlers{
-		taskRepository: taskRepository,
+		taskService: taskService,
 	}
 }
 
@@ -38,24 +44,55 @@ failed:
 func (h *HttpHandlers) HandleCreateTask(w http.ResponseWriter, r *http.Request) {
 	var taskDTO TaskDTO
 
+	//Пробуем десерелизовать, то что прислал клиент
 	if err := json.NewDecoder(r.Body).Decode(&taskDTO); err != nil {
 		errDTO := ErrorDTO{
 			Message: err.Error(),
 			Time:    time.Now(),
 		}
 
+		//Отправляем обратно, с error, потмоу что прислал данные некорректные
 		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
 
 		return
 	}
 
+	//Проверяем на адекватность отправленные значения
 	if err := taskDTO.ValidationForCreate(); err != nil {
 		errDTO := ErrorDTO{
 			Message: err.Error(),
 			Time:    time.Now(),
 		}
 
+		//Отправляем обратно, с error, потмоу что прислал данные некорректные
 		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
+
+		return
+	}
+
+	//Вызываем service, который под капотом создаст task, в последствии отправит на запись в repository
+	task, err := h.taskService.CreateTask(taskDTO.Head, taskDTO.Description)
+
+	if err != nil {
+		errDTO := ErrorDTO{
+			Message: err.Error(),
+			Time:    time.Now(),
+		}
+
+		if errors.Is(err, service.ErrInternalServer) {
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	bytes, err := json.MarshalIndent(task, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if _, err := w.Write(bytes); err != nil {
+		fmt.Println("fail to write http response:", err)
 	}
 }
 
@@ -75,7 +112,47 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandleGetTaskById(w http.ResponseWriter, r *http.Request) {
+	taskIdString := mux.Vars(r)["idTask"]
+	taskid, err := uuid.Parse(taskIdString)
+	if err != nil {
+		errDTO := ErrorDTO{
+			Message: err.Error(),
+			Time:    time.Now(),
+		}
+		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
+		return
+	}
 
+	task, err := h.taskService.GetTaskbyId(taskid)
+
+	if err != nil {
+		errDTO := ErrorDTO{
+			Message: err.Error(),
+			Time:    time.Now(),
+		}
+
+		if errors.Is(err, repo.ErrSearchTaskById) {
+			//404 статус
+			http.Error(w, errDTO.ToString(), http.StatusNotFound)
+			return
+		} else {
+			//500 статус
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	//Превращаем в массив байт определённого формата, а именно json
+	bytes, err := json.MarshalIndent(task, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+
+	//Указываем статус 200
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(bytes); err != nil {
+		fmt.Println("fail to write http response:", err)
+	}
 }
 
 /*
@@ -94,7 +171,16 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandleGetTasks(w http.ResponseWriter, r *http.Request) {
+	tasks := h.taskService.GetTasks()
+	bytes, err := json.MarshalIndent(tasks, "", "    ")
+	if err != nil {
+		panic(err)
+	}
 
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(bytes); err != nil {
+		fmt.Println("fail to write http response:", err)
+	}
 }
 
 /*
@@ -113,7 +199,17 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandleGetCompleatedTasks(w http.ResponseWriter, r *http.Request) {
+	// Не надо никак принимать query параметры, потому что если сработал необходиый handler, значит параметры таковы и были
+	compleatedTasks := h.taskService.GetCompleatedTasks()
+	bytes, err := json.MarshalIndent(compleatedTasks, "", "    ")
+	if err != nil {
+		panic(err)
+	}
 
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(bytes); err != nil {
+		fmt.Println("fail to write http response:", err)
+	}
 }
 
 /*
@@ -132,7 +228,15 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandleGetUnCompleatedTasks(w http.ResponseWriter, r *http.Request) {
-
+	uncompleatedTasks := h.taskService.GetUnCompleatedTasks()
+	bytes, err := json.MarshalIndent(uncompleatedTasks, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(bytes); err != nil {
+		fmt.Println("fail to write http response:", err)
+	}
 }
 
 /*

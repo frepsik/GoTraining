@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"errors"
 	storage "goTraining/Storage"
 	taskmodule "goTraining/TaskModule"
 
@@ -39,7 +38,7 @@ func (tr *TaskRepository) Add(task taskmodule.Task) error {
 func (tr *TaskRepository) GetById(idTask uuid.UUID) (taskmodule.Task, error) {
 	task, ok := tr.tasks[idTask]
 	if !ok {
-		return taskmodule.Task{}, errors.New("Task not found")
+		return taskmodule.Task{}, ErrSearchTaskById
 	}
 	return task, nil
 }
@@ -79,12 +78,12 @@ func (tr *TaskRepository) GetNotCompleated() []taskmodule.Task {
 }
 
 // Изменить статус на выполнено у текущей задачи
-func (tr *TaskRepository) PatchTaskCompleated(id uuid.UUID) error {
+func (tr *TaskRepository) PatchTaskStatus(id uuid.UUID, status bool) error {
 	task, ok := tr.tasks[id]
 	if !ok {
-		return errors.New("Task not found")
+		return ErrSearchTaskById
 	}
-	task.IsCompleted = true
+	task.IsCompleted = status
 	tr.tasks[id] = task
 	return nil
 }
@@ -92,7 +91,7 @@ func (tr *TaskRepository) PatchTaskCompleated(id uuid.UUID) error {
 // Удалить задачу
 func (tr *TaskRepository) Delete(id uuid.UUID) error {
 	if _, ok := tr.tasks[id]; !ok {
-		return errors.New("Task not found")
+		return ErrSearchTaskById
 	}
 
 	delete(tr.tasks, id)

@@ -23,6 +23,18 @@ func (t TaskDTO) ValidationForCreate() error {
 	return nil
 }
 
+type PatchTaskDTO struct {
+	status string
+}
+
+func (pt PatchTaskDTO) ValidationForPatch() error {
+	if pt.status == "" {
+		return errors.New("status is empty")
+	} else {
+		return nil
+	}
+}
+
 type ErrorDTO struct {
 	Message string
 	Time    time.Time
