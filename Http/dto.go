@@ -24,20 +24,19 @@ func (t TaskDTO) ValidationForCreate() error {
 }
 
 type PatchTaskDTO struct {
-	status string
-}
-
-func (pt PatchTaskDTO) ValidationForPatch() error {
-	if pt.status == "" {
-		return errors.New("status is empty")
-	} else {
-		return nil
-	}
+	status bool
 }
 
 type ErrorDTO struct {
 	Message string
 	Time    time.Time
+}
+
+func NewErrorDTO(message string) ErrorDTO {
+	return ErrorDTO{
+		Message: message,
+		Time:    time.Now(),
+	}
 }
 
 func (e ErrorDTO) ToString() string {

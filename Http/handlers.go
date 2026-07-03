@@ -79,7 +79,11 @@ func (h *HttpHandlers) HandleCreateTask(w http.ResponseWriter, r *http.Request) 
 			Time:    time.Now(),
 		}
 
+		//Custom error
 		if errors.Is(err, service.ErrInternalServer) {
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
+		} else {
 			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
 			return
 		}
@@ -112,7 +116,7 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandleGetTaskById(w http.ResponseWriter, r *http.Request) {
-	taskIdString := mux.Vars(r)["idTask"]
+	taskIdString := mux.Vars(r)["taskId"]
 	taskid, err := uuid.Parse(taskIdString)
 	if err != nil {
 		errDTO := ErrorDTO{
@@ -255,6 +259,52 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandlePatchTaskCompleated(w http.ResponseWriter, r *http.Request) {
+	var statusTask = PatchTaskDTO{}
+
+	//Первичная валидация входящий данных
+	if err := json.NewDecoder(r.Body).Decode(&statusTask); err != nil {
+		errDTO := NewErrorDTO(err.Error())
+
+		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
+
+		return
+	}
+	taskIdString := mux.Vars(r)["taskId"]
+	taskId, err := uuid.Parse(taskIdString)
+	if err != nil {
+		errDTO := NewErrorDTO(err.Error())
+
+		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
+
+		return
+	}
+
+	patchTask, err := h.taskService.PatchTaskCompleated(taskId, statusTask.status)
+	if err != nil {
+		errDTO := NewErrorDTO(err.Error())
+
+		if errors.Is(err, repo.ErrSearchTaskById) {
+			//404 статус
+			http.Error(w, errDTO.ToString(), http.StatusNotFound)
+			return
+		} else if errors.Is(err, service.ErrInternalServer) {
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
+
+		} else {
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	bytes, err := json.MarshalIndent(patchTask, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(bytes); err != nil {
+		fmt.Println("fail to write http response:", err)
+	}
 
 }
 
@@ -274,5 +324,22 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandleDeleteTask(w http.ResponseWriter, r *http.Request) {
+	taskIdString := mux.Vars(r)["taskId"]
+	taskId, err := uuid.Parse(taskIdString)
+	if err != nil {
+		errDTO := NewErrorDTO(err.Error())
+		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
+		return
+	}
+	if err := h.taskService.DeleteTask(taskId); err != nil {
+		errDTO := NewErrorDTO(err.Error())
+		if errors.Is(err, repo.ErrSearchTaskById) {
+			http.Error(w, errDTO.ToString(), http.StatusBadRequest)
+			return
+		} else {
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
+		}
+	}
 
 }

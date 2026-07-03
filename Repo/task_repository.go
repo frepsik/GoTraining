@@ -78,14 +78,19 @@ func (tr *TaskRepository) GetNotCompleated() []taskmodule.Task {
 }
 
 // Изменить статус на выполнено у текущей задачи
-func (tr *TaskRepository) PatchTaskStatus(id uuid.UUID, status bool) error {
+func (tr *TaskRepository) PatchTaskStatus(id uuid.UUID, status bool) (taskmodule.Task, error) {
 	task, ok := tr.tasks[id]
 	if !ok {
-		return ErrSearchTaskById
+		return taskmodule.Task{}, ErrSearchTaskById
 	}
 	task.IsCompleted = status
 	tr.tasks[id] = task
-	return nil
+
+	if err := tr.storage.Save(tr.tasks); err != nil {
+		return taskmodule.Task{}, err
+	}
+
+	return task, nil
 }
 
 // Удалить задачу
@@ -94,7 +99,7 @@ func (tr *TaskRepository) Delete(id uuid.UUID) error {
 		return ErrSearchTaskById
 	}
 
-	delete(tr.tasks, id)
+	err := delete(tr.tasks, id)
 
 	return nil
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	repo "goTraining/Repo"
+	storage "goTraining/Storage"
 	taskmodule "goTraining/TaskModule"
 
 	"github.com/google/uuid"
@@ -24,7 +25,7 @@ func (ts *TaskService) CreateTask(head string, description string) (taskmodule.T
 	if err := ts.taskRepository.Add(newTask); err != nil {
 
 		//В случае если произошла ошибка открытия файла, нужно сокрыть это на этом уровне
-		if errors.Is(err, ErrInternalServer) {
+		if errors.Is(err, storage.ErrStorage) {
 			return taskmodule.Task{}, ErrInternalServer
 		}
 		return taskmodule.Task{}, err
@@ -57,10 +58,18 @@ func (ts *TaskService) GetUnCompleatedTasks() []taskmodule.Task {
 }
 
 // Пока не знаю, как сюда передавать json файл, в теории полями, если я изменяю только статус
-func (ts *TaskService) PatchTaskCompleated(idTask uuid.UUID, taskStatus bool) {
+func (ts *TaskService) PatchTaskCompleated(taskId uuid.UUID, taskStatus bool) (taskmodule.Task, error) {
+	pathcTask, err := ts.taskRepository.PatchTaskStatus(taskId, taskStatus)
+	if err != nil {
+		if errors.Is(err, storage.ErrStorage) {
+			return taskmodule.Task{}, ErrInternalServer
+		}
 
+		return taskmodule.Task{}, err
+	}
+	return pathcTask, nil
 }
 
-func (ts *TaskService) DeleteTask(idTask uuid.UUID) {
-
+func (ts *TaskService) DeleteTask(idTask uuid.UUID) error {
+	return ts.DeleteTask(idTask)
 }
