@@ -9,8 +9,8 @@ import (
 //DTO - data transfer object
 
 type TaskDTO struct {
-	Head        string
-	Description string
+	Head        string `json:"head"`
+	Description string `json:"description"`
 }
 
 func (t TaskDTO) ValidationForCreate() error {

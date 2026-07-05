@@ -83,6 +83,10 @@ func (h *HttpHandlers) HandleCreateTask(w http.ResponseWriter, r *http.Request) 
 		if errors.Is(err, service.ErrInternalServer) {
 			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
 			return
+		}
+		if errors.Is(err, repo.ErrTaskAlreadyExists) {
+			http.Error(w, errDTO.ToString(), http.StatusConflict)
+			return
 		} else {
 			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
 			return
@@ -336,10 +340,16 @@ func (h *HttpHandlers) HandleDeleteTask(w http.ResponseWriter, r *http.Request) 
 		if errors.Is(err, repo.ErrSearchTaskById) {
 			http.Error(w, errDTO.ToString(), http.StatusBadRequest)
 			return
+		}
+		//В случае если не удалось внутри записать чёто
+		if errors.Is(err, service.ErrInternalServer) {
+			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
+			return
 		} else {
 			http.Error(w, errDTO.ToString(), http.StatusInternalServerError)
 			return
 		}
 	}
 
+	w.WriteHeader(http.StatusNoContent)
 }

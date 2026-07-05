@@ -71,5 +71,10 @@ func (ts *TaskService) PatchTaskCompleated(taskId uuid.UUID, taskStatus bool) (t
 }
 
 func (ts *TaskService) DeleteTask(idTask uuid.UUID) error {
-	return ts.DeleteTask(idTask)
+	if err := ts.DeleteTask(idTask); err != nil {
+		if errors.Is(err, storage.ErrStorage) {
+			return ErrInternalServer
+		}
+	}
+	return nil
 }

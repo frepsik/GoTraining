@@ -3,6 +3,7 @@ package repo
 import (
 	storage "goTraining/Storage"
 	taskmodule "goTraining/TaskModule"
+	"sync"
 
 	"github.com/google/uuid"
 )
@@ -14,6 +15,7 @@ import (
 type TaskRepository struct {
 	tasks   map[uuid.UUID]taskmodule.Task
 	storage *storage.JsonStorage
+	mtx     sync.RWMutex
 }
 
 func NewTaskRepository(storage *storage.JsonStorage) *TaskRepository {
@@ -25,6 +27,15 @@ func NewTaskRepository(storage *storage.JsonStorage) *TaskRepository {
 
 // Добавление задачи
 func (tr *TaskRepository) Add(task taskmodule.Task) error {
+
+	tr.mtx.Lock()
+	defer tr.mtx.Unlock()
+
+	//Если таска уже существует по такмоу uuid
+	if _, ok := tr.tasks[task.Id]; ok {
+		return ErrTaskAlreadyExists
+	}
+
 	tr.tasks[task.Id] = task
 
 	if err := tr.storage.Save(tr.tasks); err != nil {
@@ -36,6 +47,10 @@ func (tr *TaskRepository) Add(task taskmodule.Task) error {
 
 // Получение задачи по id
 func (tr *TaskRepository) GetById(idTask uuid.UUID) (taskmodule.Task, error) {
+
+	tr.mtx.RLock()
+	defer tr.mtx.RUnlock()
+
 	task, ok := tr.tasks[idTask]
 	if !ok {
 		return taskmodule.Task{}, ErrSearchTaskById
@@ -45,6 +60,10 @@ func (tr *TaskRepository) GetById(idTask uuid.UUID) (taskmodule.Task, error) {
 
 // Получение всех задач
 func (tr *TaskRepository) Get() []taskmodule.Task {
+
+	tr.mtx.RLock()
+	defer tr.mtx.RUnlock()
+
 	result := []taskmodule.Task{}
 
 	for _, t := range tr.tasks {
@@ -56,6 +75,10 @@ func (tr *TaskRepository) Get() []taskmodule.Task {
 
 // Получение завершённых задач
 func (tr *TaskRepository) GetCompleated() []taskmodule.Task {
+
+	tr.mtx.RLock()
+	defer tr.mtx.RUnlock()
+
 	result := []taskmodule.Task{}
 	for _, t := range tr.tasks {
 		if t.IsCompleted == true {
@@ -67,6 +90,10 @@ func (tr *TaskRepository) GetCompleated() []taskmodule.Task {
 
 // Получение не завершённых задач
 func (tr *TaskRepository) GetNotCompleated() []taskmodule.Task {
+
+	tr.mtx.RLock()
+	defer tr.mtx.RUnlock()
+
 	result := []taskmodule.Task{}
 
 	for _, t := range tr.tasks {
@@ -79,6 +106,10 @@ func (tr *TaskRepository) GetNotCompleated() []taskmodule.Task {
 
 // Изменить статус на выполнено у текущей задачи
 func (tr *TaskRepository) PatchTaskStatus(id uuid.UUID, status bool) (taskmodule.Task, error) {
+
+	tr.mtx.Lock()
+	defer tr.mtx.Unlock()
+
 	task, ok := tr.tasks[id]
 	if !ok {
 		return taskmodule.Task{}, ErrSearchTaskById
@@ -95,11 +126,19 @@ func (tr *TaskRepository) PatchTaskStatus(id uuid.UUID, status bool) (taskmodule
 
 // Удалить задачу
 func (tr *TaskRepository) Delete(id uuid.UUID) error {
+
+	tr.mtx.Lock()
+	defer tr.mtx.Unlock()
+
 	if _, ok := tr.tasks[id]; !ok {
 		return ErrSearchTaskById
 	}
 
-	err := delete(tr.tasks, id)
+	delete(tr.tasks, id)
+
+	if err := tr.storage.Save(tr.tasks); err != nil {
+		return err
+	}
 
 	return nil
 }
