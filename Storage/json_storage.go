@@ -20,15 +20,15 @@ func NewJsonStorage(path string) *JsonStorage {
 	}
 }
 
-func (js *JsonStorage) Load() (error, map[uuid.UUID]taskmodule.Task) {
+func (js *JsonStorage) Load() (map[uuid.UUID]taskmodule.Task, error) {
 	file, err := os.Open(js.path)
 	if err != nil {
 		//Проверка на то, что ошибка связана с тем, что файла не существует
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, make(map[uuid.UUID]taskmodule.Task)
+			return make(map[uuid.UUID]taskmodule.Task), nil
 		}
 		//Если любая другая ошибка при попытке открыть файл
-		return fmt.Errorf("%w: open file: %w", ErrStorage, err), nil
+		return nil, fmt.Errorf("%w: open file: %w", ErrStorage, err)
 	}
 	defer file.Close()
 
@@ -36,7 +36,7 @@ func (js *JsonStorage) Load() (error, map[uuid.UUID]taskmodule.Task) {
 
 	//Возвращаем также произвольную ошибку, если возникла проблема при десериализации json файла
 	if err := json.NewDecoder(file).Decode(&loadValues); err != nil {
-		return fmt.Errorf("%w: decode json: %w", ErrStorage, err), nil
+		return nil, fmt.Errorf("%w: decode json: %w", ErrStorage, err)
 	}
 
 	tasksMap := make(map[uuid.UUID]taskmodule.Task, len(loadValues))
@@ -45,7 +45,7 @@ func (js *JsonStorage) Load() (error, map[uuid.UUID]taskmodule.Task) {
 		tasksMap[value.Id] = value
 	}
 
-	return nil, tasksMap
+	return tasksMap, nil
 }
 
 func (js *JsonStorage) Save(tasks map[uuid.UUID]taskmodule.Task) error {

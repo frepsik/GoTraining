@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,5 +30,12 @@ func (s *HttpServer) StartServer() error {
 	router.Path("/tasks/{idTask}").Methods("DELETE").HandlerFunc(s.httpHandlers.HandleDeleteTask)
 
 	//Возвращаем либо ошибку запуска, сервера, либо nil, если сервер успешно запустился и сидит слушает
-	return http.ListenAndServe(":9091", router)
+
+	if err := http.ListenAndServe(":9091", router); err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }

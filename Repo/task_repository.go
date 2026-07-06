@@ -18,9 +18,9 @@ type TaskRepository struct {
 	mtx     sync.RWMutex
 }
 
-func NewTaskRepository(storage *storage.JsonStorage) *TaskRepository {
+func NewTaskRepository(tasks map[uuid.UUID]taskmodule.Task, storage *storage.JsonStorage) *TaskRepository {
 	return &TaskRepository{
-		tasks:   make(map[uuid.UUID]taskmodule.Task),
+		tasks:   tasks,
 		storage: storage,
 	}
 }
