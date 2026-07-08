@@ -4,6 +4,7 @@ import (
 	storage "goTraining/Storage"
 	taskmodule "goTraining/TaskModule"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -114,7 +115,15 @@ func (tr *TaskRepository) PatchTaskStatus(id uuid.UUID, status bool) (taskmodule
 	if !ok {
 		return taskmodule.Task{}, ErrSearchTaskById
 	}
+
 	task.IsCompleted = status
+	if status {
+		currentDate := time.Now()
+		task.CompletedAt = &currentDate
+	} else {
+		task.CompletedAt = nil
+	}
+
 	tr.tasks[id] = task
 
 	if err := tr.storage.Save(tr.tasks); err != nil {

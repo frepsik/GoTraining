@@ -263,10 +263,10 @@ failed:
 	-response body: JSON with error message + time
 */
 func (h *HttpHandlers) HandlePatchTaskCompleated(w http.ResponseWriter, r *http.Request) {
-	var statusTask = PatchTaskDTO{}
+	var taskStatus = PatchTaskDTO{}
 
 	//Первичная валидация входящий данных
-	if err := json.NewDecoder(r.Body).Decode(&statusTask); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&taskStatus); err != nil {
 		errDTO := NewErrorDTO(err.Error())
 
 		http.Error(w, errDTO.ToString(), http.StatusBadRequest)
@@ -283,7 +283,7 @@ func (h *HttpHandlers) HandlePatchTaskCompleated(w http.ResponseWriter, r *http.
 		return
 	}
 
-	patchTask, err := h.taskService.PatchTaskCompleated(taskId, statusTask.status)
+	patchTask, err := h.taskService.PatchTaskCompleated(taskId, taskStatus.Status)
 	if err != nil {
 		errDTO := NewErrorDTO(err.Error())
 

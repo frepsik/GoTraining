@@ -54,7 +54,7 @@ func (ts *TaskService) GetCompleatedTasks() []taskmodule.Task {
 
 // Не надо никак принимать query параметры, потому что если сработал необходиый handler, значит параметры таковы и были
 func (ts *TaskService) GetUnCompleatedTasks() []taskmodule.Task {
-	return ts.GetUnCompleatedTasks()
+	return ts.taskRepository.GetNotCompleated()
 }
 
 // Пока не знаю, как сюда передавать json файл, в теории полями, если я изменяю только статус
@@ -71,10 +71,11 @@ func (ts *TaskService) PatchTaskCompleated(taskId uuid.UUID, taskStatus bool) (t
 }
 
 func (ts *TaskService) DeleteTask(idTask uuid.UUID) error {
-	if err := ts.DeleteTask(idTask); err != nil {
+	if err := ts.taskRepository.Delete(idTask); err != nil {
 		if errors.Is(err, storage.ErrStorage) {
 			return ErrInternalServer
 		}
+		return err
 	}
 	return nil
 }

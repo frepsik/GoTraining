@@ -24,7 +24,7 @@ func (t TaskDTO) ValidationForCreate() error {
 }
 
 type PatchTaskDTO struct {
-	status bool
+	Status bool `json:"status"`
 }
 
 type ErrorDTO struct {

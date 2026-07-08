@@ -51,7 +51,7 @@ func (js *JsonStorage) Load() (map[uuid.UUID]taskmodule.Task, error) {
 func (js *JsonStorage) Save(tasks map[uuid.UUID]taskmodule.Task) error {
 	file, err := os.Create(js.path)
 	if err != nil {
-		return err
+		return fmt.Errorf("fail open file: %w %w", err, ErrStorage)
 	}
 	defer file.Close()
 
